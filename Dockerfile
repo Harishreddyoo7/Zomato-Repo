@@ -7,17 +7,16 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-FROM node:16-alpine as runner
+FROM node:16-alpine AS runner
+
 WORKDIR /app
 
-# Only copy the necessary files from the builder stage
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/build ./build
-COPY --from=builder /app/server.js ./server.js
+COPY package*.json ./
+RUN npm install --only=production
 
-# Expose the port your Node.js server listens on
+# Copy the build folder if your app serves it via Express or similar
+COPY --from=builder /app/build ./build
+
 EXPOSE 3000
 
-# Start the server
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
