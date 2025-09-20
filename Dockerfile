@@ -18,7 +18,7 @@ RUN npm run build
 
 
 # === Production Stage ===
-FROM node:16-alpine
+FROM node:16-alpine AS runner
 
 # Set working directory
 WORKDIR /app
