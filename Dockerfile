@@ -1,22 +1,37 @@
-# Use Node.js 16 slim as the base image
-FROM node:16-alpine as builder
+# === Build Stage ===
+FROM node:16-alpine AS builder
 
-# Set the working directory
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-FROM node:16-alpine AS runner
-
+# Set working directory
 WORKDIR /app
 
+# Copy package.json and package-lock.json
 COPY package*.json ./
-RUN npm install --only=production
 
-# Copy the build folder if your app serves it via Express or similar
+# Install dependencies
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the React app
+RUN npm run build
+
+
+# === Production Stage ===
+FROM node:16-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy built app and package files from builder
+COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/build ./build
 
+# Install dependencies (likely needed for `npm start`)
+RUN npm install --only=production
+
+# Expose the port your app listens on
 EXPOSE 3000
 
+# Start the Node.js server
 CMD ["npm", "start"]
